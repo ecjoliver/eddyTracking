@@ -1,0 +1,23 @@
+
+ ------------------------
+ Automated eddy detection
+ Eric Oliver
+ ------------------------
+
+  eddy_detection.py    - Code for the detection of eddies
+                         given a series of sea level maps
+
+  eddy_tracking.py     - Code for the tracking of eddies 
+                         after detection has been performed
+
+  params.py            - Parameter file used by eddy detection
+                         and eddy tracking programs
+
+  eddy_census.py       - Code for calculating census statistics
+                         of tracked eddies
+
+  eddy_plot.py         - Code for plotting eddy tracks
+
+  eddy_functions.py    - Module of supporting functions
+
+ --------------------------
