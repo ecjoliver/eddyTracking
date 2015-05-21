@@ -1,0 +1,25 @@
+
+    Code for the detection and tracking of eddies, following Chelton et al.
+    (Prog. Ocean., 2011) given a series of sea level maps. This code was
+    used in the prepration of Oliver, O'Kane, and Holbrook, Projected changes
+    to Tasman Sea eddies in a future climate, submitted to Journal of Geophysical
+    Research Oceans.
+
+    Copyright (C) 2015 Eric C. J. Oliver
+                       Institute for Marine and Antarctic Studies
+                       University of Tasmania
+                       Hobart TAS, Australia
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
