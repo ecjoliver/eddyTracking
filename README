@@ -25,11 +25,11 @@
  NOTES
 
   1. This code as been applied to model output from OFAM
-     and from weekly and daily sea level maps frmo Aviso.
-     To apply it to another data set it is necessary to
+     and from weekly and daily sea level maps from Aviso.
+     To apply it to another dataset it is necessary to
      make the following adjustments:
 
-     a. Add a new dataset 'NAME' in the conditionals in
+     a. Add a new dataset id 'NAME' in the conditionals in
         params.py, including relevant parameters (number
         of time steps, resolution, time step).
 
