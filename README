@@ -21,3 +21,21 @@
   eddy_functions.py    - Module of supporting functions
 
  --------------------------
+
+ NOTES
+
+  1. This code as been applied to model output from OFAM
+     and from weekly and daily sea level maps frmo Aviso.
+     To apply it to another data set it is necessary to
+     make the following adjustments:
+
+     a. Add a new dataset 'NAME' in the conditionals in
+        params.py, including relevant parameters (number
+        of time steps, resolution, time step).
+
+     b. Add appropriate code in 'load_lonlat' and 'load_eta'
+        functions (both in eddy_functions.py) to properly
+        handle the loading of your data. Code assumes one
+        file (spatial map) per time step.
+
+ --------------------------

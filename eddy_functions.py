@@ -59,6 +59,21 @@ def load_lonlat(run, disk='erebor'):
         lat = fileobj.variables['NbLatitudes'].getValue()
         fileobj.close()
 
+    elif run=='AVISOd':
+
+        pathroot = '/media/DataOne/data/sla/aviso/dt_global_twosat_msla_h/'
+
+        # Find week's map
+        file_header = 'dt_global_twosat_msla_h_'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+        file = file_list[0]
+
+        # load week's map
+        fileobj = NetCDF.NetCDFFile(file, mode='r')
+        lon = fileobj.variables['lon'].getValue()
+        lat = fileobj.variables['lat'].getValue()
+        fileobj.close()
+
     return lon, lat
 
 
@@ -143,6 +158,21 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         fileobj = NetCDF.NetCDFFile(file, mode='r')
         eta = fileobj.variables['Grid_0001'].getValue()[i1:i2+1, j1:j2+1].T / 100
         eta_miss = fileobj.variables['Grid_0001']._FillValue / 100
+        fileobj.close()
+
+    elif run=='AVISOd':
+
+        pathroot = '/media/DataOne/data/sla/aviso/dt_global_twosat_msla_h/'
+
+        # Find week's map
+        file_header = 'dt_global_twosat_msla_h_'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+        file = file_list[tt]
+
+        # load week's map
+        fileobj = NetCDF.NetCDFFile(file, mode='r')
+        eta = fileobj.variables['sla'].getValue()[0, j1:j2+1, i1:i2+1] * fileobj.variables['sla'].scale_factor
+        eta_miss = fileobj.variables['sla']._FillValue * fileobj.variables['sla'].scale_factor
         fileobj.close()
 
     return eta, eta_miss[0]

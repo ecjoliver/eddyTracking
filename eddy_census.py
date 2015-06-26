@@ -14,7 +14,7 @@ import mpl_toolkits.basemap as bm
 
 # Load eddy data
 
-data_dir = '/home/ecoliver/Desktop/data/eddy/'
+data_dir = '/media/Insect/data/ssf/eddy/'
 run = 'AVISO'
 data = np.load(data_dir+'eddy_track_'+run+'.npz')
 eddies_AVISO = data['eddies']

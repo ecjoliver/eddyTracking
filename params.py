@@ -3,14 +3,15 @@ import eddy_functions as eddy
 
 # Eddy detection
 
-data_dir = '/home/ecoliver/Desktop/data/eddy/'
+#data_dir = '/home/ecoliver/Desktop/data/eddy/'
+data_dir = '/media/Insect/data/ssf/eddy/'
 
 lon1 = 90
 lon2 = 180
 lat1 = -55
 lat2 = 0
 
-NAME = 'AVISO' # Which dataset/model run for which to detect eddies (AVISO, CTRL or A1B)
+NAME = 'AVISOd' # Which dataset/model run for which to detect eddies (AVISO, CTRL or A1B)
 
 if NAME == 'CTRL':
     run = NAME
@@ -27,6 +28,11 @@ elif NAME == 'AVISO':
     T = 876 # Number of time steps to loop over
     res = 0.25 # horizontal resolution of SSH field [degrees]
     dt = 7. # Sample rate of detected eddies [days]
+elif NAME == 'AVISOd':
+    run = NAME
+    T = 7967 # Number of time steps to loop over
+    res = 0.25 # horizontal resolution of SSH field [degrees]
+    dt = 1. # Sample rate of detected eddies [days]
 
 cut_lon = 20. # cutoff wavelenth in longitudinal direction (for filtering) [degrees]
 cut_lat = 10. # cutoff wavelenth in latitudinal direction (for filtering) [degrees]
