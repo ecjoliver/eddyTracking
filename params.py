@@ -1,17 +1,34 @@
 import numpy as np
-import eddy_functions as eddy
+#import eddy_functions as eddy
+
+def mkdir(p):
+    """make directory of path that is passed"""
+    import os
+    try:
+       os.makedirs(p)
+       print "output folder: "+p+ " does not exist, we will make one."
+    except OSError as exc: # Python >2.5
+       import errno
+       if exc.errno == errno.EEXIST and os.path.isdir(p):
+          pass
+       else: raise
 
 # Eddy detection
 
-#data_dir = '/home/ecoliver/Desktop/data/eddy/'
-data_dir = '/media/Insect/data/ssf/eddy/'
+#cb
+#working folder
+data_dir = '/srv/ccrc/data42/z3457920/20151012_eac_sep_dynamics/analysis/eddy_tracking/'
+plot_dir = './'
+plot_dir = data_dir + 'plots/'
+mkdir(data_dir)
+mkdir(plot_dir)
 
-lon1 = 90
+lon1 = 140 #was 90
 lon2 = 180
 lat1 = -55
 lat2 = 0
 
-NAME = 'AVISOd' # Which dataset/model run for which to detect eddies (AVISO, CTRL or A1B)
+NAME = 'cb_NEMO' # Which dataset/model run for which to detect eddies (AVISO, CTRL or A1B)
 
 if NAME == 'CTRL':
     run = NAME
@@ -33,6 +50,19 @@ elif NAME == 'AVISOd':
     T = 7967 # Number of time steps to loop over
     res = 0.25 # horizontal resolution of SSH field [degrees]
     dt = 1. # Sample rate of detected eddies [days]
+elif NAME == 'cb_AVISO':
+    run = NAME
+    T = 4 # Number of time steps to loop over
+    res = 0.25 # horizontal resolution of SSH field [degrees]
+    dt = 1. # Sample rate of detected eddies [days]
+    pathroot='/srv/ccrc/data42/z3457920/RawData/AVISO/RawData/dt_global_allsat_madt/ftp.aviso.altimetry.fr/global/delayed-time/grids/madt/all-sat-merged/h/1993/'
+elif NAME == 'cb_NEMO':
+    run = NAME
+    #T = 365 # Number of time steps to loop over
+    T = 5 # Number of time steps to loop over
+    res = 0.25 # horizontal resolution of SSH field [degrees]
+    dt = 1. # Sample rate of detected eddies [days]
+    pathroot='/srv/ccrc/data42/z3457920/20151012_eac_sep_dynamics/nemo_cordex24_ERAI01/'
 
 cut_lon = 20. # cutoff wavelenth in longitudinal direction (for filtering) [degrees]
 cut_lat = 10. # cutoff wavelenth in latitudinal direction (for filtering) [degrees]
@@ -54,7 +84,8 @@ d_thresh = 400. # max linear dimension of eddy [km] ; Only valid outside Tropics
 dt_aviso = 7. # Sample rate used in Chelton et al. (2011) [days]
 dE_aviso = 150. # Length of search ellipse to East of eddy used in Chelton et al. (2011) [km]
 
-rossrad = eddy.load_rossrad() # Atlas of Rossby radius of deformation and first baroclinic wave speed (Chelton et al. 1998)
+#This is only used in eddy_tracking so, has been called explictly there. This removes the circular dependency so we can import params into eddy_functions!
+#rossrad = eddy.load_rossrad() # Atlas of Rossby radius of deformation and first baroclinic wave speed (Chelton et al. 1998)
 
 eddy_scale_min = 0.25 # min ratio of amplitude of new and old eddies
 eddy_scale_max = 2.5 # max ratio of amplidude of new and old eddies

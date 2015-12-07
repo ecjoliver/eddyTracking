@@ -39,3 +39,17 @@
         file (spatial map) per time step.
 
  --------------------------
+
+ Automated eddy detection (Dec 2015)
+ Changes added by Christopher Bull
+
+ Modified to work with NEMO.
+
+ Made some general changes including:
+
+ 1. Works with python netCDF4 library.
+ 1. Refactored so global data and plot dirs are defined in params.py (and created if they don't exist)
+ 1. Refactored so that pathroot for input data can be defined in params rather than eddy_functions.
+ 1. Added quick_plot and detection_plot functions to eddy_function.py
+ 1. Added functions from ecoliver (that were not previously included) into eddy_functions.py
+ 1. Added rossrad.dat

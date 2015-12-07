@@ -10,11 +10,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import mpl_toolkits.basemap as bm
+import params
 
 
 # Load eddy data
 
-data_dir = '/media/Insect/data/ssf/eddy/'
+data_dir = params.data_dir
+
 run = 'AVISO'
 data = np.load(data_dir+'eddy_track_'+run+'.npz')
 eddies_AVISO = data['eddies']
@@ -22,6 +24,9 @@ run = 'CTRL'
 data = np.load(data_dir+'eddy_track_'+run+'.npz')
 eddies_CTRL = data['eddies']
 run = 'A1B'
+data = np.load(data_dir+'eddy_track_'+run+'.npz')
+eddies_A1B = data['eddies']
+run = 'cb_NEMO'
 data = np.load(data_dir+'eddy_track_'+run+'.npz')
 eddies_A1B = data['eddies']
 

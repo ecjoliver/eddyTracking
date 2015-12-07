@@ -11,10 +11,20 @@ import scipy.signal as signal
 import scipy.ndimage as ndimage
 import scipy.interpolate as interpolate
 import glob
-from Scientific.IO import NetCDF
-from itertools import repeat
-from ecoliver import find_nearest, nanmean
+import matplotlib.pyplot as plt
 
+from netCDF4 import Dataset
+
+from itertools import repeat
+
+import params 
+
+def find_nearest(array, value):
+    idx=(np.abs(array-value)).argmin()
+    return array[idx], idx
+
+def nanmean(array, axis=None):
+    return np.mean(np.ma.masked_array(array, np.isnan(array)), axis)
 
 def load_lonlat(run, disk='erebor'):
     '''
@@ -35,9 +45,9 @@ def load_lonlat(run, disk='erebor'):
 
         filename = 'ctrl_nov10/daily/ocean_tse_sfc_2003_01.nc'
 
-        fileobj = NetCDF.NetCDFFile(pathroot+filename, mode='r')
-        lon = fileobj.variables['xt_ocean'].getValue()
-        lat = fileobj.variables['yt_ocean'].getValue()
+        fileobj = Dataset(pathroot+filename, mode='r')
+        lon = fileobj.variables['xt_ocean'][:]
+        lat = fileobj.variables['yt_ocean'][:]
         fileobj.close()
 
     #
@@ -54,9 +64,9 @@ def load_lonlat(run, disk='erebor'):
         file = file_list[0]
 
         # load week's map
-        fileobj = NetCDF.NetCDFFile(file, mode='r')
-        lon = fileobj.variables['NbLongitudes'].getValue()
-        lat = fileobj.variables['NbLatitudes'].getValue()
+        fileobj = Dataset(file, mode='r')
+        lon = fileobj.variables['NbLongitudes'][:]
+        lat = fileobj.variables['NbLatitudes'][:]
         fileobj.close()
 
     elif run=='AVISOd':
@@ -69,10 +79,56 @@ def load_lonlat(run, disk='erebor'):
         file = file_list[0]
 
         # load week's map
-        fileobj = NetCDF.NetCDFFile(file, mode='r')
-        lon = fileobj.variables['lon'].getValue()
-        lat = fileobj.variables['lat'].getValue()
+        fileobj = Dataset(file, mode='r')
+        lon = fileobj.variables['lon'][:]
+        lat = fileobj.variables['lat'][:]
         fileobj.close()
+
+    elif run=='cb_AVISO':
+
+        pathroot = './'
+        pathroot=params.pathroot
+
+        # Find week's map
+        #note slight difference in file name!
+        #file_header = 'dt_ref_global_merged_madt_h_qd_'
+        file_header = 'dt_global_allsat_madt_h_'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+
+        assert (len(file_list)>0),"globbing failed, exiting"
+
+        #this is just for the lat/lon info so we only need one time step..
+        file = file_list[0]
+
+        # load week's map
+        fileobj = Dataset(file, mode='r')
+        #lon = fileobj.variables['NbLongitudes'][:]
+        #lat = fileobj.variables['NbLatitudes'][:]
+        lon = fileobj.variables['lon'][:]
+        lat = fileobj.variables['lat'][:]
+        fileobj.close()
+
+    elif run=='cb_NEMO':
+
+        pathroot=params.pathroot
+
+        # Find week's map
+        file_header = '*/cordex24-ERAI01_1d_*_grid_T_2D'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+
+        assert (len(file_list)>0),"globbing failed, exiting"
+
+        #this is just for the lat/lon info so we only need one time step..
+        filename = file_list[0]
+        #print filename
+
+        #fileobj = Dataset(filename,mode='r')
+        #lon = fileobj.variables['nav_lon'][:]
+        #lat = fileobj.variables['nav_lat'][:]
+        #h'm need to interpolate...
+
+        lon=np.arange(params.lon1,params.lon2,.25)
+        lat=np.arange(params.lat1,params.lat2,.25)
 
     return lon, lat
 
@@ -136,8 +192,8 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         day = doy - sum(dpm[0:month-1])
 
         # load day's map
-        fileobj = NetCDF.NetCDFFile(pathroot + runpath + 'ocean_tse_sfc_' + str(year) + '_' +str(month).zfill(2) + '.nc', mode='r')
-        eta = fileobj.variables['eta_t'].getValue()[day, j1:j2+1, i1:i2+1]
+        fileobj = Dataset(pathroot + runpath + 'ocean_tse_sfc_' + str(year) + '_' +str(month).zfill(2) + '.nc', mode='r')
+        eta = fileobj.variables['eta_t'][:][day, j1:j2+1, i1:i2+1]
         eta_miss = fileobj.variables['eta_t']._FillValue
         fileobj.close()
 
@@ -155,8 +211,8 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         file = file_list[tt]
 
         # load week's map
-        fileobj = NetCDF.NetCDFFile(file, mode='r')
-        eta = fileobj.variables['Grid_0001'].getValue()[i1:i2+1, j1:j2+1].T / 100
+        fileobj = Dataset(file, mode='r')
+        eta = fileobj.variables['Grid_0001'][:][i1:i2+1, j1:j2+1].T / 100
         eta_miss = fileobj.variables['Grid_0001']._FillValue / 100
         fileobj.close()
 
@@ -170,13 +226,122 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         file = file_list[tt]
 
         # load week's map
-        fileobj = NetCDF.NetCDFFile(file, mode='r')
-        eta = fileobj.variables['sla'].getValue()[0, j1:j2+1, i1:i2+1] * fileobj.variables['sla'].scale_factor
+        fileobj = Dataset(file, mode='r')
+        eta = fileobj.variables['sla'][:][0, j1:j2+1, i1:i2+1] * fileobj.variables['sla'].scale_factor
         eta_miss = fileobj.variables['sla']._FillValue * fileobj.variables['sla'].scale_factor
         fileobj.close()
 
+    elif run=='cb_AVISO':
+
+        pathroot = './'
+        pathroot='/srv/ccrc/data42/z3457920/RawData/AVISO/RawData/dt_global_allsat_madt/ftp.aviso.altimetry.fr/global/delayed-time/grids/madt/all-sat-merged/h/1993/'
+        pathroot=params.pathroot
+
+        # Find week's map
+        #note slight difference in file name!
+        file_header = 'dt_global_allsat_madt_h_'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+
+        assert (len(file_list)>0),"globbing failed, exiting"
+
+        file = file_list[tt]
+
+        # load week's map
+        fileobj = Dataset(file, mode='r')
+        #lon = fileobj.variables['NbLongitudes'][:]
+        #lat = fileobj.variables['NbLatitudes'][:]
+        lon = fileobj.variables['lon'][:]
+        lat = fileobj.variables['lat'][:]
+
+        #eta = fileobj.variables['Grid_0001'][:][i1:i2+1, j1:j2+1].T / 100
+        eta = fileobj.variables['adt'][0,:,:][j1:j2+1, i1:i2+1] 
+
+        #careful chris! Eric might be doing something different!!!
+        #EO line:
+        #eta_miss = fileobj.variables['Grid_0001']._FillValue / 100
+
+        #new new cb line
+        #eta_miss=[fileobj.variables['adt'][:].fill_value]
+        eta_miss=[-214748]
+
+        #################
+
+        fileobj.close()
+
+    elif run=='cb_NEMO':
+        def nemo_fixdateline(netcdf_datasetobj):
+            """function to return fixed version of netcdf nav_lon variable
+            
+            :netcdf_datasetobj: netCDF4 Dataset object of nemo file
+            :returns: nemo_lons numpy array with fixed dateline
+            """
+            nemo_lons=netcdf_datasetobj.variables['nav_lon'][:]
+            #fix the dateline
+            for index in np.arange(np.shape(nemo_lons)[0]):
+                start=np.where(np.sign(nemo_lons[index,:])==-1)[0][0]
+                nemo_lons[index,start:]=nemo_lons[index,start:]+360
+            return nemo_lons
+
+
+        #pathroot='/srv/ccrc/data42/z3457920/20151012_eac_sep_dynamics/nemo_cordex24_ERAI01/'
+        pathroot=params.pathroot
+
+        file_header = '*/cordex24-ERAI01_1d_*_grid_T_2D'
+        file_header = '2005/cordex24-ERAI01_1d_*_grid_T_2D'
+        file_list = glob.glob(pathroot + file_header + '*.nc')
+        file = file_list[0] #TEMP DODGY HACK FOR NOW
+
+        #h'm need to interpolate because of funky NEMO grid...
+        fileobj = Dataset(file,mode='r')
+        loni=nemo_fixdateline(fileobj)
+        #loni = fileobj.variables['nav_lon'][:]
+        lati = fileobj.variables['nav_lat'][:]
+
+        lon=np.arange(params.lon1,params.lon2,.25)
+        lat=np.arange(params.lat1,params.lat2,.25)
+
+        old_grid_data=fileobj.variables['zos'][tt,:,:]
+        XI, YI = np.meshgrid(lon,lat)
+        
+        #interp
+        etamask=interpolate.griddata((loni.flatten(),lati.flatten()),old_grid_data.flatten() , (XI,YI),method='nearest')
+
+        eta=interpolate.griddata((loni.flatten(),lati.flatten()),old_grid_data.flatten() , (XI,YI),method='cubic')
+
+        #set mask
+        eta[np.where(etamask==0)]=0
+        eta_miss=[0]
+
     return eta, eta_miss[0]
 
+def quick_plot(field,findrange=False):
+    '''
+    Create quick interactive diagnostic plot to double check eddy_detection is doing what we want...
+    '''
+    import matplotlib.pyplot as plt
+    y,x=np.meshgrid(np.arange(field.shape[1]),np.arange(field.shape[0]))
+    plt.clf()
+
+    if not findrange:
+        plt.contourf(y, x, field, levels=np.arange(-2.5,2.5,0.05))
+    else:
+        if np.isnan(np.sum(field)):
+            plotfield=np.nan_to_num(field)
+            print 'range of field is:'
+            print 'min',np.min(plotfield)
+            print 'max',np.max(plotfield)
+
+            plt.contourf(y, x, field,levels=np.linspace(np.min(plotfield),np.max(plotfield),50))
+
+        else:
+            print 'range of field is:'
+            print 'min',np.min(field)
+            print 'max',np.max(field)
+
+            plt.contourf(y, x, field,levels=np.linspace(np.min(field),np.max(field),50))
+    plt.title('diagnostic plot')
+    plt.show()
+    import ipdb; ipdb.set_trace()
 
 def remove_missing(field, missing, replacement):
     '''
@@ -364,6 +529,71 @@ def detect_eddies(field, lon, lat, ssh_crits, res, Npix_min, Npix_max, amp_thres
     return lon_eddies, lat_eddies, amp_eddies, area_eddies, scale_eddies
 
 
+def detection_plot(tt,lon,lat,eta,eta_filt,anticyc_eddies,cyc_eddies,ptype,plot_dir,findrange=True):
+    """function to plot how the eddy detection alogirthm went
+    
+    :tt
+    :lon
+    :lat
+    :eta
+    :eta_filt
+    :anticyc_eddies
+    :cyc_eddies
+    :ptype
+    :plot_dir
+    :findrange=True
+    :returns: @todo
+    """
+    def plot_eddies():
+        """@todo: Docstring for plot_eddies
+        :returns: @todo
+        """
+        ax.plot(anticyc_eddies[0], anticyc_eddies[1], 'k^')
+        ax.plot(cyc_eddies[0], cyc_eddies[1], 'kv')
+    
+        pass
+    if ptype=='single':
+        plt.close('all')
+        fig=plt.figure()
+        ax=fig.add_subplot(1, 1,1)
+
+    elif ptype=='rawtoo':
+        plt.close('all')
+        fig=plt.figure()
+
+        #width then height
+        fig=plt.figure(figsize=(12.0,9.0))
+        ax=fig.add_subplot(1, 2,1)
+
+        #ecj range...
+        #plt.contourf(lon, lat, eta_filt, levels=np.arange(-2.5,2.5,0.05))
+
+        #cb NEMO range
+        cs1=plt.contourf(lon, lat, eta_filt, levels=np.linspace(-.817,0.5,40))
+        cbar=fig.colorbar(cs1,orientation='vertical')
+        ax.set_title('day: ' + str(tt)+' filtered ssh')
+        plot_eddies()
+        
+        ax=fig.add_subplot(1, 2,2)
+        cs1=plt.contourf(lon, lat, eta, levels=np.linspace(-1.75,0.85,40))
+        cbar=fig.colorbar(cs1,orientation='vertical')
+        ax.set_title('day: ' + str(tt)+' raw ssh')
+        plot_eddies()
+
+
+        #determine range to plot 
+        #if np.isnan(np.sum(eta_filt)):
+            #plt.contourf(lon,lat, eta_filt,levels=np.linspace(np.min(np.nan_to_num(eta_filt)),np.max(np.nan_to_num(eta_filt)),50))
+            #print np.min(np.nan_to_num(eta_filt))
+            #print np.max(np.nan_to_num(eta_filt))
+        #else:
+            #plt.contourf(lon,lat, eta_filt,levels=np.linspace(np.min(eta_filt),np.max(eta_filt),50))
+
+        #plt.clim(-0.5,0.5)
+        plt.savefig(plot_dir+'eta_filt_' + str(tt).zfill(4) + '.png', bbox_inches=0)
+
+    pass
+
 def eddies_list(lon_eddies_a, lat_eddies_a, amp_eddies_a, area_eddies_a, scale_eddies_a, lon_eddies_c, lat_eddies_c, amp_eddies_c, area_eddies_c, scale_eddies_c):
     '''
     Creates list detected eddies
@@ -419,7 +649,10 @@ def load_rossrad():
     according to the formula:  cR = -beta rossby_rad**2
     '''
 
-    data = np.loadtxt('data/rossrad.dat')
+    #data = np.loadtxt('data/rossrad.dat')
+
+    #cb
+    data = np.loadtxt('./rossrad.dat')
 
     rossrad = {}
     rossrad['lat'] = data[:,0]
