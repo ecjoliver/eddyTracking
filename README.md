@@ -39,3 +39,25 @@ Modified to work with NEMO. Made some general changes including:
  1. Added quick_plot and detection_plot functions to eddy_function.py
  1. Added functions from ecoliver (that were not previously included) into eddy_functions.py
  1. Added rossrad.dat
+
+ Contact                                                                                                                                                                                                                                                                        
+=======                                                                                                                                                                                                                                                                        
+Eric C. J. Oliver                                                                                                                                                                                                                                                       
+Institute for Marine and Antarctic Studies                                                                                                                                                                                                                              
+University of Tasmania                                                                                                                                                                                                                                                  
+Hobart TAS, Australia                                               
+t: (+61) 03 6226 6663                                                                                                                                                                                                                                                   
+e: eric.oliver@utas.edu.au                                                                                                                                                                                                                                              
+w: http://passage.phys.ocean.dal.ca/~olivere                                                                                                                                                                                                                        
+https://github.com/ecjoliver 
+   
+
+Christopher Bull.                                                                                                                                                                                                                                                       
+Affiliation: Climate Change Research Centre and ARC Centre of Excellence for Climate Sys    tem Science.                                                                                                                                                                
+Level 4, Mathews Building                                                                                                                                                                                                                                           
+University of New South Wales                                                                                                                                                                                                                                             
+Sydney, NSW, Australia, 2052                                                                                                                                                                                                                                              
+e: z3457920@student.unsw.edu.au                                                                                                                                                                                                                                          
+w: christopherbull.com.au
+   github.com/chrisb13
+t: @ChrisBullOceanO
