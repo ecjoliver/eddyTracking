@@ -6,20 +6,17 @@ Eric Oliver
 Code Description
 ============                     
 
-eddy_detection.py    - Code for the detection of eddies given a series of sea level maps
+File                 |Description
+---------------------|----------
+|eddy_detection.py    | Code for the detection of eddies given a series of sea level maps|
+|eddy_tracking.py     | Code for the tracking of eddies after detection has been performed|
+|params.py            | Parameter file used by eddy detection and eddy tracking programs|
+|find_T.py            | Added by Chris, support file for params.py for NEMO output to calculate how many timesteps in an experiment|
+|eddy_census.py       | Code for calculating census statistics of tracked eddies|
+|eddy_plot.py         | Code for plotting eddy tracks|
+|eddy_functions.py    | Module of supporting functions|
 
-eddy_tracking.py     - Code for the tracking of eddies after detection has been performed
-
-params.py            - Parameter file used by eddy detection and eddy tracking programs
-
-eddy_census.py       - Code for calculating census statistics of tracked eddies
-
-eddy_plot.py         - Code for plotting eddy tracks
-
-eddy_functions.py    - Module of supporting functions
-
-Notes
-============                     
+## Notes
 
 1. This code as been applied to model output from OFAM  and from weekly and daily sea level maps from Aviso. To apply it to another dataset it is necessary to make the following adjustments:
 
@@ -27,9 +24,12 @@ Notes
 
  b. Add appropriate code in 'load_lonlat' and 'load_eta' functions (both in eddy_functions.py) to properly handle the loading of your data. Code assumes one file (spatial map) per time step.
 
+1. rosrad.dat obtained from [here](http://www-po.coas.oregonstate.edu/research/po/research/rossby_radius/index.html). Specifically:
+```bash
+wget http://www-po.coas.oregonstate.edu/research/po/research/rossby_radius/rossrad.dat
+```
 
-Changes added by Christopher Bull (Dec 2015)
-============                     
+## Changes added by Christopher Bull (Dec 2015)
 
 Modified to work with NEMO. Made some general changes including:
 
