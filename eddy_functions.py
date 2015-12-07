@@ -11,13 +11,131 @@ import scipy.signal as signal
 import scipy.ndimage as ndimage
 import scipy.interpolate as interpolate
 import glob
+
+import matplotlib
+# Turn the followin on if you are running on storm sometimes - Forces matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from netCDF4 import Dataset
 
 from itertools import repeat
 
 import params 
+
+import re
+
+
+def raw_nemo_globber_specifytpe(exp_path,return_dates=False):
+    """function that globs for NEMO files from the raw experiment output looking for velocity files only.
+
+    Parameters
+    ----------
+    exp_path:  path to NEMO experiment (will glob through the year directories)
+    1) 'grid_T_2D' : glob all files of type grid_T_2D
+
+    return_dates:  optional. will run find_dates function before returning and so will return a pandas DataFrame
+
+    :returns: 
+
+    For 'grid_T_2D' : single list of globbed files
+
+    Will return pandas DataFrame instead if return_dates=True
+
+    WARNING: if return_dates is true you will get one line for every new date in the pandas dataframe!
+    (There will be multiple references to the same file.)
+
+    Notes
+    -------
+    Runs reg_date by default.
+
+    Typical NEMO output looks like:
+    
+        cordex24-ERAI01_1d_19910101_19911231_grid_T_2D.nc
+
+    Example 
+    -------
+
+    """
+    #_lg.info("We are globbing for experiment type: " + os.path.basename(exp_path))
+    #_lg.info("We are globbing for the following file type: " + file_type)
+    glob_pattern='*/*_grid_T_2D.nc'
+
+    infiles=sorted(glob.glob(exp_path + glob_pattern ))
+    assert(infiles!=[]),"glob didn't find anything!"
+
+    #if isinstance(date_extraction,(list,tuple)):
+        #infiles=globbed_date_remove(infiles)
+
+    if return_dates:
+        return find_dates(infiles)
+    return infiles
+
+
+def reg_date(string_to_find_date_in):
+    """function that uses regular expressions to find start and end date from file.
+    
+    :string_to_find_date_in: string from NEMO netCDF file.
+    :returns: string with start and end date
+    """
+    #really handonline regex finder: https://regex101.com/#python
+    exp = re.search(r'[0-9]{8}_[0-9]{8}', string_to_find_date_in) 
+    exp=exp.group()
+
+    #print exp
+    return exp
+
+def find_dates(globbedfiles):
+    """function that finds dates associated with passed list of NEMO output. Returns in pandas DataFrame.
+
+    NB: assumes daily output on your NEMO files.
+
+    Parameters
+    ----------
+    :globbedfiles: list of globbed files from raw_nemo_globber with pattern:
+        */cordex24*_1d_*_grid_T_2D.nc
+
+    :returns: dataframe of names and dates in pandas DataFrame.
+    """
+    
+    #globbedfiles=globbedfiles[0:3]
+
+    dates_nemo_start=[pd.to_datetime(reg_date(file)[0:8],format='%Y%m%d')\
+            for file in globbedfiles]
+
+    dates_nemo_end=[pd.to_datetime(reg_date(file)[9:],format='%Y%m%d')\
+            for file in globbedfiles]
+
+    t_steps=\
+    [(end-start).days+1 for end,start in zip(dates_nemo_end,dates_nemo_start)]
+
+    #create time_index from start and end dates
+    time_index=[]
+    for start,end in zip(dates_nemo_start,dates_nemo_end):
+        time_index.append(pd.Series(pd.date_range(start,end,freq='D')))
+
+    time_index=pd.concat(time_index)
+
+    ##creates two lists:
+    ##file_time_index list that tells you which time index in a file
+    ##file_list list which file
+    file_time_index=[]
+    file_list=[]
+    for idx,t in enumerate(t_steps):
+        file_time_index=file_time_index+range(t)
+        file_list=file_list+[globbedfiles[idx]]*t
+
+    nemo_df=pd.DataFrame({'date':time_index,\
+                          'file_time_index':file_time_index,\
+                          'file_list':file_list\
+                          })
+
+    nemo_df.index=nemo_df.date
+    del nemo_df['date']
+    return nemo_df
+
 
 def find_nearest(array, value):
     idx=(np.abs(array-value)).argmin()
@@ -113,12 +231,14 @@ def load_lonlat(run, disk='erebor'):
         pathroot=params.pathroot
 
         # Find week's map
-        file_header = '*/cordex24-ERAI01_1d_*_grid_T_2D'
-        file_list = glob.glob(pathroot + file_header + '*.nc')
+        #file_header = '*/cordex24-ERAI01_1d_*_grid_T_2D'
+        #file_list = glob.glob(pathroot + file_header + '*.nc')
+        file_list=raw_nemo_globber_specifytpe(params.pathroot,return_dates=False)
 
         assert (len(file_list)>0),"globbing failed, exiting"
 
         #this is just for the lat/lon info so we only need one time step..
+
         filename = file_list[0]
         #print filename
 
@@ -286,13 +406,12 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         #pathroot='/srv/ccrc/data42/z3457920/20151012_eac_sep_dynamics/nemo_cordex24_ERAI01/'
         pathroot=params.pathroot
 
-        file_header = '*/cordex24-ERAI01_1d_*_grid_T_2D'
-        file_header = '2005/cordex24-ERAI01_1d_*_grid_T_2D'
-        file_list = glob.glob(pathroot + file_header + '*.nc')
-        file = file_list[0] #TEMP DODGY HACK FOR NOW
+        file_list=raw_nemo_globber_specifytpe(params.pathroot,return_dates=True)
+        infile=file_list.iloc[tt]['file_list']
+        file_time_index=file_list.iloc[tt]['file_time_index']
 
         #h'm need to interpolate because of funky NEMO grid...
-        fileobj = Dataset(file,mode='r')
+        fileobj = Dataset(infile,mode='r')
         loni=nemo_fixdateline(fileobj)
         #loni = fileobj.variables['nav_lon'][:]
         lati = fileobj.variables['nav_lat'][:]
@@ -300,7 +419,7 @@ def load_eta(run, tt, i1, i2, j1, j2, disk='erebor'):
         lon=np.arange(params.lon1,params.lon2,.25)
         lat=np.arange(params.lat1,params.lat2,.25)
 
-        old_grid_data=fileobj.variables['zos'][tt,:,:]
+        old_grid_data=fileobj.variables['zos'][file_time_index,:,:]
         XI, YI = np.meshgrid(lon,lat)
         
         #interp
@@ -318,7 +437,6 @@ def quick_plot(field,findrange=False):
     '''
     Create quick interactive diagnostic plot to double check eddy_detection is doing what we want...
     '''
-    import matplotlib.pyplot as plt
     y,x=np.meshgrid(np.arange(field.shape[1]),np.arange(field.shape[0]))
     plt.clf()
 

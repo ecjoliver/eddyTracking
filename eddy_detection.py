@@ -9,6 +9,12 @@
 # Load required modules
 
 import numpy as np
+
+import matplotlib
+# Turn the followin on if you are running on storm sometimes - Forces matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
+
 from matplotlib import pyplot as plt
 import eddy_functions as eddy
 

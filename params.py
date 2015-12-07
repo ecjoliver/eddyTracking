@@ -59,7 +59,11 @@ elif NAME == 'cb_AVISO':
 elif NAME == 'cb_NEMO':
     run = NAME
     #T = 365 # Number of time steps to loop over
-    T = 5 # Number of time steps to loop over
+
+    #do the following to find T
+    #python find_T
+    T=7670 # Number of time steps to loop over
+
     res = 0.25 # horizontal resolution of SSH field [degrees]
     dt = 1. # Sample rate of detected eddies [days]
     pathroot='/srv/ccrc/data42/z3457920/20151012_eac_sep_dynamics/nemo_cordex24_ERAI01/'
