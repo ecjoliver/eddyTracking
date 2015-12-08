@@ -26,9 +26,14 @@ eddies = eddy.eddies_init(det_eddies)
 
 # Stitch eddy tracks together at future time steps
 
+print 'eddy tracking started'
+print "number of time steps to loop over: ",T
+
+rossrad = eddy.load_rossrad() # Atlas of Rossby radius of deformation and first baroclinic wave speed (Chelton et al. 1998)
+
 for tt in range(1, T):
 
-    print tt, T
+    print "timestep: " ,tt+1,". out of: ", T
 
     # Track eddies from time step tt-1 to tt and update corresponding tracks and/or create new eddies
 
